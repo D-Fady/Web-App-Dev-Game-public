@@ -1,0 +1,7 @@
+# Sauvegardes JSON exportées depuis le site (contiennent vos données de projet)
+*.json
+# Divers
+.DS_Store
+Thumbs.db
+.env
+.vscode/

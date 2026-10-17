@@ -1,0 +1,1157 @@
+<!DOCTYPE html>
+<html lang="fr" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Game Dev Studio Tracker</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Supabase JS (synchronisation temps réel) -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+  <!-- Google Fonts: Inter & Space Grotesk -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="selection:bg-purple-900 selection:text-white">
+
+  <header class="sticky top-0 z-40 backdrop-blur-md border-b border-white/10" style="background-color: rgba(6, 9, 19, 0.9);">
+    <div class="w-full max-w-[2560px] mx-auto px-3 sm:px-6 py-2.5 sm:py-3 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+      
+      <!-- Logo, Title & Engine Tag -->
+      <div class="flex items-center justify-between lg:justify-start gap-3 min-w-0 flex-1">
+        <div class="flex items-center gap-2.5 min-w-0">
+          <div class="w-8 h-8 rounded-lg neon-border flex-shrink-0 flex items-center justify-center" style="background-color: var(--bg-card); color: var(--accent);">
+            <!-- Minimal Vector Gamepad -->
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <rect x="2" y="6" width="20" height="12" rx="4"></rect>
+              <path d="M6 12h4m-2-2v4m10-2h.01m-3-2h.01"></path>
+            </svg>
+          </div>
+          <div class="min-w-0">
+            <div class="flex items-center gap-2 flex-wrap">
+              <h1 id="headerProjectName" class="text-sm sm:text-base font-bold tracking-tight text-white truncate max-w-[250px] sm:max-w-md xl:max-w-xl">
+                Neon Outlaw : Cyberpunk Rogue
+              </h1>
+              <span id="headerEngineTag" class="text-[11px] font-mono px-2 py-0.5 rounded font-semibold neon-badge text-accent flex-shrink-0">
+                Godot / Unity / UE5
+              </span>
+            </div>
+            <p class="text-[11px] text-slate-400 truncate hidden sm:block">Production Tracker & Game Design Toolkit</p>
+          </div>
+        </div>
+
+        <!-- Quick actions visible on mobile header -->
+        <div class="flex items-center gap-1.5 lg:hidden">
+          <button onclick="openCustomizerModal()" title="Couleurs" class="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 border border-white/10">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><path d="M12 2a7 7 0 0 1 7 7c0 2-1 3-2 4s-1 2-1 3"></path></svg>
+          </button>
+          <button onclick="openDataModal()" title="Sauvegarde" class="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 border border-white/10">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Navigation Tabs & Actions -->
+      <div class="flex items-center justify-between lg:justify-end gap-2 overflow-x-auto pb-1 lg:pb-0 scrollbar-none flex-none">
+        <nav class="flex items-center gap-1 sm:gap-1.5 flex-shrink-0">
+          <!-- Tab 1: Kanban -->
+          <button onclick="switchTab('kanban')" id="tabBtn-kanban" class="tab-btn px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-medium transition-all text-white bg-accent-transparent border border-accent-subtle flex items-center gap-1.5">
+            <svg class="w-3.5 h-3.5 text-accent" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <rect x="3" y="3" width="7" height="18" rx="1"></rect>
+              <rect x="14" y="3" width="7" height="11" rx="1"></rect>
+            </svg>
+            <span>Tableau Kanban</span>
+          </button>
+
+          <!-- Tab 2: Roadmap -->
+          <button onclick="switchTab('roadmap')" id="tabBtn-roadmap" class="tab-btn px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-medium transition-all text-slate-400 hover:text-white hover:bg-white/5 flex items-center gap-1.5">
+            <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"></polygon>
+              <line x1="8" y1="2" x2="8" y2="18"></line>
+              <line x1="16" y1="6" x2="16" y2="22"></line>
+            </svg>
+            <span>Roadmap</span>
+          </button>
+
+          <!-- Tab 3: Mini-GDD -->
+          <button onclick="switchTab('minigdd')" id="tabBtn-minigdd" class="tab-btn px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-medium transition-all text-slate-400 hover:text-white hover:bg-white/5 flex items-center gap-1.5">
+            <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+              <polyline points="14 2 14 8 20 8"></polyline>
+              <line x1="16" y1="13" x2="8" y2="13"></line>
+            </svg>
+            <span>Mini-GDD</span>
+          </button>
+
+          <!-- Tab 4: GDD Complet (Nouveau) -->
+          <button onclick="switchTab('fullgdd')" id="tabBtn-fullgdd" class="tab-btn px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-medium transition-all text-slate-400 hover:text-white hover:bg-white/5 flex items-center gap-1.5">
+            <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+              <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+            </svg>
+            <span>GDD Complet</span>
+          </button>
+
+          <!-- Tab 5: Studio Guide & Lexique -->
+          <button onclick="switchTab('guide')" id="tabBtn-guide" class="tab-btn px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-medium transition-all text-slate-400 hover:text-white hover:bg-white/5 flex items-center gap-1.5">
+            <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path d="M9 18h6"></path><path d="M10 22h4"></path>
+              <path d="M12 2a7 7 0 0 0-7 7c0 3 2 5 3 6h8c1-1 3-3 3-6a7 7 0 0 0-7-7z"></path>
+            </svg>
+            <span>Guide & Lexique</span>
+          </button>
+          <!-- Tab 6: Bloc-notes -->
+          <button onclick="switchTab('notes')" id="tabBtn-notes" class="tab-btn px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-medium transition-all text-slate-400 hover:text-white hover:bg-white/5 flex items-center gap-1.5">
+            <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><polyline points="14 3 14 9 20 9"></polyline><line x1="8" y1="13" x2="16" y2="13"></line><line x1="8" y1="17" x2="14" y2="17"></line>
+            </svg>
+            <span>Notes</span>
+          </button>
+        </nav>
+
+        <!-- Desktop Action Buttons -->
+        <div class="hidden lg:flex items-center gap-2 pl-2 border-l border-white/10 flex-shrink-0">
+          <button onclick="openCustomizerModal()" title="Personnaliser les couleurs" class="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white border border-white/10 transition-colors">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <circle cx="12" cy="12" r="10"></circle>
+              <path d="M12 2a7 7 0 0 1 7 7c0 2-1 3-2 4s-1 2-1 3"></path>
+            </svg>
+          </button>
+          <button onclick="openDataModal()" title="Sauvegardes & Données" class="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white border border-white/10 transition-colors">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"></path>
+              <polyline points="17 21 17 13 7 13 7 21"></polyline>
+              <polyline points="7 3 7 8 15 8"></polyline>
+            </svg>
+          </button>
+          <div id="saveIndicator" class="flex items-center text-[11px] text-emerald-400 gap-1.5 px-2 py-1 bg-emerald-950/40 border border-emerald-500/30 rounded-md">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+            <span id="saveIndicatorText">Sauvegardé</span>
+          </div>
+          <button id="logoutBtn" onclick="logout()" title="Se déconnecter" class="hidden p-1.5 rounded-md text-slate-400 hover:text-white hover:bg-white/10">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </header>
+
+  <main class="w-full max-w-[2560px] mx-auto px-3 sm:px-6 py-4 sm:py-6">
+
+    <!-- ========================================== -->
+    <!-- SECTION 1: TABLEAU KANBAN                  -->
+    <!-- ========================================== -->
+    <section id="section-kanban" class="space-y-4 sm:space-y-5">
+      <div class="p-3 sm:p-4 rounded-xl neon-border-soft flex flex-wrap items-center justify-between gap-3" style="background-color: var(--bg-surface);">
+        <div class="flex flex-wrap items-center gap-2 sm:gap-3 flex-1 min-w-[240px]">
+          <div class="relative flex-1 min-w-[160px] sm:min-w-[200px]">
+            <span class="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none text-slate-400">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            </span>
+            <input type="text" id="taskSearchInput" oninput="renderKanban()" placeholder="Filtrer les tâches..." class="w-full pl-8 pr-3 py-1.5 text-xs rounded-lg bg-black/40 border border-white/10 text-white placeholder-slate-500 focus:outline-none focus:border-purple-500 transition-colors">
+          </div>
+
+          <select id="poleFilter" onchange="renderKanban()" class="py-1.5 px-2.5 text-xs rounded-lg bg-black/40 border border-white/10 text-white focus:outline-none focus:border-purple-500">
+            <option value="ALL">Tous les pôles</option>
+            <option value="Game Design">Game Design</option>
+            <option value="Programmation">Programmation</option>
+            <option value="Art & 3D">Art & 3D</option>
+            <option value="Audio & SFX">Audio & SFX</option>
+            <option value="UI & UX">UI & UX</option>
+            <option value="Bugfix">Bugs & QA</option>
+          </select>
+
+          <select id="priorityFilter" onchange="renderKanban()" class="py-1.5 px-2.5 text-xs rounded-lg bg-black/40 border border-white/10 text-white focus:outline-none focus:border-purple-500">
+            <option value="ALL">Priorité</option>
+            <option value="Critique">Critique</option>
+            <option value="Haute">Haute</option>
+            <option value="Moyenne">Moyenne</option>
+            <option value="Basse">Basse</option>
+          </select>
+
+          <select id="milestoneFilter" onchange="renderKanban()" class="py-1.5 px-2.5 text-xs rounded-lg bg-black/40 border border-white/10 text-white focus:outline-none focus:border-purple-500">
+            <option value="ALL">Tous les jalons</option>
+            <option value="Concept">Phase 1: Concept</option>
+            <option value="Prototype">Phase 2: Prototype</option>
+            <option value="Vertical Slice">Phase 3: Vertical Slice</option>
+            <option value="Alpha">Phase 4: Alpha</option>
+            <option value="Beta">Phase 5: Bêta</option>
+            <option value="Release">Phase 6: Release</option>
+          </select>
+        </div>
+
+        <button onclick="openTaskModal()" class="w-full sm:w-auto px-3.5 py-1.5 rounded-lg text-xs font-semibold text-white neon-button flex items-center justify-center gap-1.5 flex-shrink-0">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+          <span>Nouvelle Tâche</span>
+        </button>
+      </div>
+
+      <!-- Kanban Columns Container with horizontal scroll and no squeeze -->
+      <div class="kanban-scroll-container flex gap-3.5 overflow-x-auto pb-4 pt-1 items-start min-w-0 snap-x">
+        <div class="w-[280px] sm:w-[290px] flex-shrink-0 snap-start flex flex-col rounded-xl p-3 border border-white/10" style="background-color: var(--bg-surface);">
+          <div class="flex items-center justify-between pb-2.5 border-b border-white/5 mb-2.5">
+            <div class="flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-slate-400"></span>
+              <h2 class="font-bold text-xs uppercase tracking-wider text-slate-300">Backlog</h2>
+            </div>
+            <span id="count-backlog" class="text-[11px] px-2 py-0.5 rounded-full bg-white/5 text-slate-400 font-mono">0</span>
+          </div>
+          <div id="col-backlog" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event, 'backlog')" class="kanban-drop-zone min-h-[380px] space-y-2.5 p-1 rounded-lg transition-colors"></div>
+        </div>
+
+        <div class="w-[280px] sm:w-[290px] flex-shrink-0 snap-start flex flex-col rounded-xl p-3 border border-white/10" style="background-color: var(--bg-surface);">
+          <div class="flex items-center justify-between pb-2.5 border-b border-white/5 mb-2.5">
+            <div class="flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-indigo-400"></span>
+              <h2 class="font-bold text-xs uppercase tracking-wider text-slate-300">À faire</h2>
+            </div>
+            <span id="count-todo" class="text-[11px] px-2 py-0.5 rounded-full bg-white/5 text-slate-400 font-mono">0</span>
+          </div>
+          <div id="col-todo" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event, 'todo')" class="kanban-drop-zone min-h-[380px] space-y-2.5 p-1 rounded-lg transition-colors"></div>
+        </div>
+
+        <div class="w-[280px] sm:w-[290px] flex-shrink-0 snap-start flex flex-col rounded-xl p-3 border border-white/10" style="background-color: var(--bg-surface);">
+          <div class="flex items-center justify-between pb-2.5 border-b border-white/5 mb-2.5">
+            <div class="flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full" style="background-color: var(--accent);"></span>
+              <h2 class="font-bold text-xs uppercase tracking-wider text-slate-200">En cours</h2>
+            </div>
+            <span id="count-inprogress" class="text-[11px] px-2 py-0.5 rounded-full bg-accent-transparent text-accent font-mono border border-accent-subtle">0</span>
+          </div>
+          <div id="col-inprogress" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event, 'inprogress')" class="kanban-drop-zone min-h-[380px] space-y-2.5 p-1 rounded-lg transition-colors"></div>
+        </div>
+
+        <div class="w-[280px] sm:w-[290px] flex-shrink-0 snap-start flex flex-col rounded-xl p-3 border border-white/10" style="background-color: var(--bg-surface);">
+          <div class="flex items-center justify-between pb-2.5 border-b border-white/5 mb-2.5">
+            <div class="flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-amber-400"></span>
+              <h2 class="font-bold text-xs uppercase tracking-wider text-slate-300">Test & QA</h2>
+            </div>
+            <span id="count-testing" class="text-[11px] px-2 py-0.5 rounded-full bg-white/5 text-slate-400 font-mono">0</span>
+          </div>
+          <div id="col-testing" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event, 'testing')" class="kanban-drop-zone min-h-[380px] space-y-2.5 p-1 rounded-lg transition-colors"></div>
+        </div>
+
+        <div class="w-[280px] sm:w-[290px] flex-shrink-0 snap-start flex flex-col rounded-xl p-3 border border-white/10" style="background-color: var(--bg-surface);">
+          <div class="flex items-center justify-between pb-2.5 border-b border-white/5 mb-2.5">
+            <div class="flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+              <h2 class="font-bold text-xs uppercase tracking-wider text-slate-300">Terminé</h2>
+            </div>
+            <span id="count-done" class="text-[11px] px-2 py-0.5 rounded-full bg-emerald-950/50 text-emerald-300 font-mono border border-emerald-500/30">0</span>
+          </div>
+          <div id="col-done" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event, 'done')" class="kanban-drop-zone min-h-[380px] space-y-2.5 p-1 rounded-lg transition-colors"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- SECTION 2: ROADMAP                         -->
+    <!-- ========================================== -->
+    <section id="section-roadmap" class="hidden space-y-5">
+      <div class="p-4 sm:p-5 rounded-xl neon-border-soft flex flex-col md:flex-row justify-between items-start md:items-center gap-4" style="background-color: var(--bg-surface);">
+        <div>
+          <h2 class="text-lg sm:text-xl font-bold font-heading text-white flex items-center gap-2">
+            <span>Roadmap de Production & Jalons</span>
+          </h2>
+          <p class="text-xs text-slate-400 mt-1 max-w-xl">
+            Modifiez vous-même les estimations de temps selon votre emploi du temps d'étudiants. Les pourcentages se calculent automatiquement à partir des tâches validées dans le Kanban.
+          </p>
+        </div>
+        <div class="flex items-center gap-3">
+          <div class="text-right">
+            <div class="text-[11px] text-slate-400">Progression globale</div>
+            <div id="globalProgressPercent" class="text-lg sm:text-xl font-bold text-accent font-mono">0%</div>
+          </div>
+          <div class="w-28 h-2.5 rounded-full bg-black/50 overflow-hidden border border-white/10 p-0.5">
+            <div id="globalProgressBar" class="h-full rounded-full transition-all duration-300" style="width: 0%; background: linear-gradient(90deg, var(--accent), #38bdf8);"></div>
+          </div>
+        </div>
+      </div>
+
+      <div id="roadmapMilestonesList" class="space-y-3.5"></div>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- SECTION 3: MINI-GDD (SYNTHÈSE DU PROJET)   -->
+    <!-- ========================================== -->
+    <section id="section-minigdd" class="hidden space-y-5">
+      <div class="p-4 sm:p-5 rounded-xl neon-border-soft" style="background-color: var(--bg-surface);">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-5 pb-4 border-b border-white/10">
+          <div>
+            <h2 class="text-lg sm:text-xl font-bold font-heading text-white">Fiche Synthétique (Mini-GDD)</h2>
+            <p class="text-xs text-slate-400 mt-0.5">La vue d'ensemble rapide pour l'équipe et les pitchs.</p>
+          </div>
+          <div class="flex items-center gap-2 flex-wrap">
+            <!-- Bouton Générer le résumé depuis le GDD complet -->
+            <button onclick="generateMiniGddFromFull()" title="Extrait les données clés du GDD complet pour remplir cette fiche" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold text-accent bg-accent-transparent hover:bg-white/10 border border-accent-subtle flex items-center gap-1.5 transition-colors">
+              <svg class="w-3.5 h-3.5 text-accent" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+              <span>Générer le résumé depuis le GDD</span>
+            </button>
+            <button onclick="saveGDDData(true)" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold text-white neon-button flex items-center gap-1.5">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              <span>Enregistrer</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+          <!-- Identity -->
+          <div class="space-y-3 p-4 rounded-xl border border-white/5" style="background-color: var(--bg-card);">
+            <div class="flex items-center gap-2 pb-1 border-b border-white/5">
+              <svg class="w-4 h-4 text-accent" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+              <h3 class="text-xs font-bold uppercase tracking-wider text-accent">Identité du Projet</h3>
+            </div>
+            <div>
+              <label class="block text-[11px] font-semibold text-slate-300 mb-1">Titre de Travail</label>
+              <input type="text" id="gddTitle" oninput="saveGDDData()" class="w-full px-3 py-1.5 text-xs rounded-lg bg-black/40 border border-white/10 text-white focus:outline-none focus:border-purple-500">
+            </div>
+            <div>
+              <label class="block text-[11px] font-semibold text-slate-300 mb-1">Pitch / Accroche (2 phrases max)</label>
+              <textarea id="gddPitch" rows="2" oninput="saveGDDData()" placeholder="De quoi s'agit-il et quelle est l'accroche unique ?" class="w-full px-3 py-1.5 text-xs rounded-lg bg-black/40 border border-white/10 text-white focus:outline-none focus:border-purple-500"></textarea>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block text-[11px] font-semibold text-slate-300 mb-1">Genre & Style</label>
+                <input type="text" id="gddGenre" oninput="saveGDDData()" placeholder="ex: Action Roguelite" class="w-full px-3 py-1.5 text-xs rounded-lg bg-black/40 border border-white/10 text-white focus:outline-none focus:border-purple-500">
+              </div>
+              <div>
+                <label class="block text-[11px] font-semibold text-slate-300 mb-1">Moteur de Jeu</label>
+                <input type="text" id="gddEngine" oninput="saveGDDData()" placeholder="Godot / Unity / UE5" class="w-full px-3 py-1.5 text-xs rounded-lg bg-black/40 border border-white/10 text-white focus:outline-none focus:border-purple-500">
+              </div>
+            </div>
+          </div>
+
+          <!-- Core Gameplay Loop -->
+          <div class="space-y-3 p-4 rounded-xl border border-white/5" style="background-color: var(--bg-card);">
+            <div class="flex items-center gap-2 pb-1 border-b border-white/5">
+              <svg class="w-4 h-4 text-accent" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
+              <h3 class="text-xs font-bold uppercase tracking-wider text-accent">Boucle Principale (Core Loop)</h3>
+            </div>
+            <div>
+              <label class="block text-[11px] font-semibold text-slate-300 mb-1">Enchaînement d'actions cycliques</label>
+              <textarea id="gddCoreLoop" rows="3" oninput="saveGDDData()" placeholder="Explorer un secteur -> Hacker & combattre -> Collecter des améliorations -> Upgrader au repaire -> Repartir." class="w-full px-3 py-1.5 text-xs rounded-lg bg-black/40 border border-white/10 text-white focus:outline-none focus:border-purple-500"></textarea>
+            </div>
+            <div>
+              <label class="block text-[11px] font-semibold text-slate-300 mb-1">Références de Jeux</label>
+              <input type="text" id="gddReferences" oninput="saveGDDData()" placeholder="ex: Dead Cells + Hotline Miami + Hades" class="w-full px-3 py-1.5 text-xs rounded-lg bg-black/40 border border-white/10 text-white focus:outline-none focus:border-purple-500">
+            </div>
+          </div>
+
+          <!-- Gameplay Pillars -->
+          <div class="space-y-3 p-4 rounded-xl border border-white/5" style="background-color: var(--bg-card);">
+            <div class="flex items-center gap-2 pb-1 border-b border-white/5">
+              <svg class="w-4 h-4 text-accent" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 22h16M2 18h20M5 18V6M19 18V6M9 18V6M15 18V6M3 6h18L12 2z"></path></svg>
+              <h3 class="text-xs font-bold uppercase tracking-wider text-accent">Les 3 Piliers de Design</h3>
+            </div>
+            <div class="space-y-2">
+              <input type="text" id="gddPillar1" oninput="saveGDDData()" placeholder="Pilier 1 : Contrôle réactif & sentiment de fluidité" class="w-full px-3 py-1.5 text-xs rounded-lg bg-black/40 border border-white/10 text-white focus:outline-none focus:border-purple-500">
+              <input type="text" id="gddPillar2" oninput="saveGDDData()" placeholder="Pilier 2 : Synergies expérimentales d'améliorations" class="w-full px-3 py-1.5 text-xs rounded-lg bg-black/40 border border-white/10 text-white focus:outline-none focus:border-purple-500">
+              <input type="text" id="gddPillar3" oninput="saveGDDData()" placeholder="Pilier 3 : Atmosphère cyberpunk sombre et stylisée" class="w-full px-3 py-1.5 text-xs rounded-lg bg-black/40 border border-white/10 text-white focus:outline-none focus:border-purple-500">
+            </div>
+          </div>
+
+          <!-- Art & Audio -->
+          <div class="space-y-3 p-4 rounded-xl border border-white/5" style="background-color: var(--bg-card);">
+            <div class="flex items-center gap-2 pb-1 border-b border-white/5">
+              <svg class="w-4 h-4 text-accent" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 19l7-7 3 3-7 7-3-3z"></path><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"></path></svg>
+              <h3 class="text-xs font-bold uppercase tracking-wider text-accent">Direction Visuelle & Sonore</h3>
+            </div>
+            <div>
+              <label class="block text-[11px] font-semibold text-slate-300 mb-1">Style Visuel & Palette</label>
+              <textarea id="gddArtStyle" rows="2" oninput="saveGDDData()" placeholder="ex: Pixel art soigné 32x32, éclairage 2.5D dynamique, dominante violet néon." class="w-full px-3 py-1.5 text-xs rounded-lg bg-black/40 border border-white/10 text-white focus:outline-none focus:border-purple-500"></textarea>
+            </div>
+            <div>
+              <label class="block text-[11px] font-semibold text-slate-300 mb-1">Ambiance Audio</label>
+              <textarea id="gddAudioStyle" rows="2" oninput="saveGDDData()" placeholder="ex: Darksynth percutante, feedback d'impacts puissant et bruits mécaniques." class="w-full px-3 py-1.5 text-xs rounded-lg bg-black/40 border border-white/10 text-white focus:outline-none focus:border-purple-500"></textarea>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- SECTION 4: GDD COMPLET (EXHAUSTIF)         -->
+    <!-- ========================================== -->
+    <section id="section-fullgdd" class="hidden space-y-5">
+      <div class="p-4 sm:p-5 rounded-xl neon-border-soft space-y-6" style="background-color: var(--bg-surface);">
+        
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-4 border-b border-white/10">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-accent-transparent text-accent border border-accent-subtle">DOCUMENT OFFICIEL</span>
+              <h2 class="text-lg sm:text-xl font-bold font-heading text-white">Game Design Document Exhaustif (GDD)</h2>
+            </div>
+            <p class="text-xs text-slate-400 mt-1">Le document de référence complet de production, structuré en 8 volets professionnels. Modifiable et sauvegardé en temps réel.</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <button onclick="syncFullGddToMiniPrompt()" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold text-accent bg-accent-transparent hover:bg-white/10 border border-accent-subtle flex items-center gap-1.5 transition-colors">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+              <span>Exporter vers le Mini-GDD</span>
+            </button>
+            <button onclick="saveFullGDDData(true)" class="px-4 py-1.5 rounded-lg text-xs font-semibold text-white neon-button flex items-center gap-1.5">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline></svg>
+              <span>Enregistrer le GDD</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 8 Sections Accordion / Grid Layout -->
+        <div class="space-y-6">
+
+          <!-- Volet 1: Vision, Pitch & Cible -->
+          <div class="p-4 rounded-xl border border-white/5 space-y-3" style="background-color: var(--bg-card);">
+            <div class="flex items-center gap-2 pb-2 border-b border-white/5">
+              <span class="w-6 h-6 rounded bg-accent-transparent text-accent flex items-center justify-center text-xs font-mono font-bold">1</span>
+              <h3 class="font-bold text-sm text-white">Vision, Positionnement & Proposition de Valeur</h3>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+              <div>
+                <label class="block font-semibold text-slate-300 mb-1">Titre de Travail Officiel</label>
+                <input type="text" id="fg_title" oninput="saveFullGDDData()" class="w-full px-3 py-1.5 rounded-lg bg-black/40 border border-white/10 text-white focus:outline-none focus:border-purple-500">
+              </div>
+              <div>
+                <label class="block font-semibold text-slate-300 mb-1">Cible & Plateformes (Steam PC, Switch, Itch.io...)</label>
+                <input type="text" id="fg_platforms" oninput="saveFullGDDData()" class="w-full px-3 py-1.5 rounded-lg bg-black/40 border border-white/10 text-white focus:outline-none focus:border-purple-500">
+              </div>
+              <div class="md:col-span-2">
+                <label class="block font-semibold text-slate-300 mb-1">Elevator Pitch (Le résumé d'accroche complet)</label>
+                <textarea id="fg_pitch" rows="2" oninput="saveFullGDDData()" class="w-full px-3 py-1.5 rounded-lg bg-black/40 border border-white/10 text-white focus:outline-none focus:border-purple-500"></textarea>
+              </div>
+              <div class="md:col-span-2">
+                <label class="block font-semibold text-slate-300 mb-1">USP (Unique Selling Propositions - Qu'est-ce qui le rend unique face aux concurrents ?)</label>
+                <textarea id="fg_usp" rows="2" oninput="saveFullGDDData()" placeholder="1. Système de bullet-time basé sur la musique&#10;2. Combinaisons d'implants avec effets glitch visuels&#10;3. Difficulté adaptative basée sur la prise de risque" class="w-full px-3 py-1.5 rounded-lg bg-black/40 border border-white/10 text-white focus:outline-none focus:border-purple-500"></textarea>
+              </div>
+            </div>
+          </div>
+
+          <!-- Volet 2: Gameplay Mechanics & Core Loop -->
+          <div class="p-4 rounded-xl border border-white/5 space-y-3" style="background-color: var(--bg-card);">
+            <div class="flex items-center gap-2 pb-2 border-b border-white/5">
+              <span class="w-6 h-6 rounded bg-accent-transparent text-accent flex items-center justify-center text-xs font-mono font-bold">2</span>
+              <h3 class="font-bold text-sm text-white">Mécaniques de Jeu, Physique & Contrôles</h3>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+              <div class="md:col-span-2">
+                <label class="block font-semibold text-slate-300 mb-1">Boucle de Gameplay Étape par Étape (Seconde par seconde / Minute par minute)</label>
+                <textarea id="fg_loop" rows="3" oninput="saveFullGDDData()" class="w-full px-3 py-1.5 rounded-lg bg-black/40 border border-white/10 text-white focus:outline-none focus:border-purple-500"></textarea>
+              </div>
+              <div>
+                <label class="block font-semibold text-slate-300 mb-1">Physique & Mouvements (Vitesse, Inertie, Dash, Saut, Coyote Time)</label>
+                <textarea id="fg_movement" rows="3" oninput="saveFullGDDData()" placeholder="Vitesse max: 450 px/s. Dash instantané de 0.15s avec invulnérabilité (i-frames). Tolérance d'input buffer de 100ms." class="w-full px-3 py-1.5 rounded-lg bg-black/40 border border-white/10 text-white focus:outline-none focus:border-purple-500"></textarea>
+              </div>
+              <div>
+                <label class="block font-semibold text-slate-300 mb-1">Système de Combat & Interactions (Armes, Munitions, Hitstop, Parry)</label>
+                <textarea id="fg_combat" rows="3" oninput="saveFullGDDData()" placeholder="Hitstop de 2 frames sur coup reçu. Recul d'arme dynamique. Rechargement actif façon Gears of War." class="w-full px-3 py-1.5 rounded-lg bg-black/40 border border-white/10 text-white focus:outline-none focus:border-purple-500"></textarea>
+              </div>
+            </div>
+          </div>
+
+          <!-- Volet 3: Progression & Économie de Jeu -->
+          <div class="p-4 rounded-xl border border-white/5 space-y-3" style="background-color: var(--bg-card);">
+            <div class="flex items-center gap-2 pb-2 border-b border-white/5">
+              <span class="w-6 h-6 rounded bg-accent-transparent text-accent flex items-center justify-center text-xs font-mono font-bold">3</span>
+              <h3 class="font-bold text-sm text-white">Système de Progression, Méta & Économie</h3>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+              <div>
+                <label class="block font-semibold text-slate-300 mb-1">Progression dans la Run (In-Run Upgrades)</label>
+                <textarea id="fg_runProgression" rows="3" oninput="saveFullGDDData()" placeholder="Raretés des mods (Commune, Rare, Légendaire). Arbre de synergies par surcharge thermique." class="w-full px-3 py-1.5 rounded-lg bg-black/40 border border-white/10 text-white focus:outline-none focus:border-purple-500"></textarea>
+              </div>
+              <div>
+                <label class="block font-semibold text-slate-300 mb-1">Méta-Progression Permanente (Repaire / Hub / Arbre global)</label>
+                <textarea id="fg_metaProgression" rows="3" oninput="saveFullGDDData()" placeholder="Devise permanente récoltée : Puces de données. Déblocage de nouvelles classes et marchands au repaire." class="w-full px-3 py-1.5 rounded-lg bg-black/40 border border-white/10 text-white focus:outline-none focus:border-purple-500"></textarea>
+              </div>
+            </div>
+          </div>
+
+          <!-- Volet 4: Univers, Lore & Narration -->
+          <div class="p-4 rounded-xl border border-white/5 space-y-3" style="background-color: var(--bg-card);">
+            <div class="flex items-center gap-2 pb-2 border-b border-white/5">
+              <span class="w-6 h-6 rounded bg-accent-transparent text-accent flex items-center justify-center text-xs font-mono font-bold">4</span>
+              <h3 class="font-bold text-sm text-white">Univers, Lore & Narration Environnementale</h3>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+              <div>
+                <label class="block font-semibold text-slate-300 mb-1">Contexte de l'Univers & Thématique</label>
+                <textarea id="fg_lore" rows="3" oninput="saveFullGDDData()" placeholder="Mégalopole néon sous contrôle corporatif. Les hors-la-loi luttent pour hacker les serveurs centraux." class="w-full px-3 py-1.5 rounded-lg bg-black/40 border border-white/10 text-white focus:outline-none focus:border-purple-500"></textarea>
+              </div>
+              <div>
+                <label class="block font-semibold text-slate-300 mb-1">Personnages & Narration Diégétique (Dialogues courts, Logs, Décors)</label>
+                <textarea id="fg_characters" rows="3" oninput="saveFullGDDData()" placeholder="Pas de longs pavés textuels. Hologrammes contextuels, descriptions d'objets courtes et répliques audio." class="w-full px-3 py-1.5 rounded-lg bg-black/40 border border-white/10 text-white focus:outline-none focus:border-purple-500"></textarea>
+              </div>
+            </div>
+          </div>
+
+          <!-- Volet 5: Level Design & IA Ennemis -->
+          <div class="p-4 rounded-xl border border-white/5 space-y-3" style="background-color: var(--bg-card);">
+            <div class="flex items-center gap-2 pb-2 border-b border-white/5">
+              <span class="w-6 h-6 rounded bg-accent-transparent text-accent flex items-center justify-center text-xs font-mono font-bold">5</span>
+              <h3 class="font-bold text-sm text-white">Level Design, Pacing & Archétypes d'Ennemis</h3>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+              <div>
+                <label class="block font-semibold text-slate-300 mb-1">Règles de Salles & Pacing (Rythme Tension / Récompense)</label>
+                <textarea id="fg_levelDesign" rows="3" oninput="saveFullGDDData()" placeholder="Structure modulaire en tuiles 32x32. Arènes fermées avec sas de décompression pour faire respirer le joueur." class="w-full px-3 py-1.5 rounded-lg bg-black/40 border border-white/10 text-white focus:outline-none focus:border-purple-500"></textarea>
+              </div>
+              <div>
+                <label class="block font-semibold text-slate-300 mb-1">Archétypes d'IA Ennemis (Drones légers, Tanks, Snipers, Boss)</label>
+                <textarea id="fg_enemies" rows="3" oninput="saveFullGDDData()" placeholder="3 types d'IA pour le prototype : Runner au corps-à-corps, Tourelle statique avec faisceau de visée laser, Shield-Bot." class="w-full px-3 py-1.5 rounded-lg bg-black/40 border border-white/10 text-white focus:outline-none focus:border-purple-500"></textarea>
+              </div>
+            </div>
+          </div>
+
+          <!-- Volet 6: Direction Artistique & UI/UX -->
+          <div class="p-4 rounded-xl border border-white/5 space-y-3" style="background-color: var(--bg-card);">
+            <div class="flex items-center gap-2 pb-2 border-b border-white/5">
+              <span class="w-6 h-6 rounded bg-accent-transparent text-accent flex items-center justify-center text-xs font-mono font-bold">6</span>
+              <h3 class="font-bold text-sm text-white">Direction Artistique, Éclairage & UI/UX</h3>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+              <div>
+                <label class="block font-semibold text-slate-300 mb-1">Règles Visuelles & Shaders (Palette, Post-Processing)</label>
+                <textarea id="fg_artDirection" rows="3" oninput="saveFullGDDData()" class="w-full px-3 py-1.5 rounded-lg bg-black/40 border border-white/10 text-white focus:outline-none focus:border-purple-500"></textarea>
+              </div>
+              <div>
+                <label class="block font-semibold text-slate-300 mb-1">HUD & Ergonomie Joueur (Lisibilité en combat, Feedback de dégâts)</label>
+                <textarea id="fg_hudUx" rows="3" oninput="saveFullGDDData()" placeholder="Barre de vie centrée ou au-dessus du héros. Pas d'encombrement sur les bords. Réticule dynamique avec état de surchauffe." class="w-full px-3 py-1.5 rounded-lg bg-black/40 border border-white/10 text-white focus:outline-none focus:border-purple-500"></textarea>
+              </div>
+            </div>
+          </div>
+
+          <!-- Volet 7: Audio & Sound Design -->
+          <div class="p-4 rounded-xl border border-white/5 space-y-3" style="background-color: var(--bg-card);">
+            <div class="flex items-center gap-2 pb-2 border-b border-white/5">
+              <span class="w-6 h-6 rounded bg-accent-transparent text-accent flex items-center justify-center text-xs font-mono font-bold">7</span>
+              <h3 class="font-bold text-sm text-white">Sound Design & Musique Dynamique</h3>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+              <div>
+                <label class="block font-semibold text-slate-300 mb-1">Musique Interactive / Adaptative (Layers de combat)</label>
+                <textarea id="fg_music" rows="2" oninput="saveFullGDDData()" class="w-full px-3 py-1.5 rounded-lg bg-black/40 border border-white/10 text-white focus:outline-none focus:border-purple-500"></textarea>
+              </div>
+              <div>
+                <label class="block font-semibold text-slate-300 mb-1">SFX Prioritaires (Tirs, Impacts, Morts, Alertes)</label>
+                <textarea id="fg_sfx" rows="2" oninput="saveFullGDDData()" placeholder="Hiérarchie audio : sons d'alerte et de danger toujours prioritaires en dB sur les bruits d'ambiance." class="w-full px-3 py-1.5 rounded-lg bg-black/40 border border-white/10 text-white focus:outline-none focus:border-purple-500"></textarea>
+              </div>
+            </div>
+          </div>
+
+          <!-- Volet 8: Architecture Technique & Scope Management -->
+          <div class="p-4 rounded-xl border border-white/5 space-y-3" style="background-color: var(--bg-card);">
+            <div class="flex items-center gap-2 pb-2 border-b border-white/5">
+              <span class="w-6 h-6 rounded bg-accent-transparent text-accent flex items-center justify-center text-xs font-mono font-bold">8</span>
+              <h3 class="font-bold text-sm text-white">Architecture Technique, Pipeline Git & Délimitation de Scope</h3>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+              <div>
+                <label class="block font-semibold text-slate-300 mb-1">Moteur & Choix d'Architecture (Godot / Unity / UE5)</label>
+                <textarea id="fg_techArchitecture" rows="3" oninput="saveFullGDDData()" placeholder="Machine à états finis (FSM) pour le personnage et les IA. Événements découplés (Event Bus / Signals) pour l'UI et l'Audio." class="w-full px-3 py-1.5 rounded-lg bg-black/40 border border-white/10 text-white focus:outline-none focus:border-purple-500"></textarea>
+              </div>
+              <div>
+                <label class="block font-semibold text-slate-300 mb-1">CE QUI EST OUT-OF-SCOPE (Ce qu'on refuse formellement de faire pour réussir)</label>
+                <textarea id="fg_outOfScope" rows="3" oninput="saveFullGDDData()" placeholder="REFUSÉ : Mode multijoueur en ligne, 100 quêtes secondaires, cinématiques 3D précalculées. Focus absolu sur le gameplay solo." class="w-full px-3 py-1.5 rounded-lg bg-black/40 border border-rose-500/30 text-rose-200 focus:outline-none focus:border-rose-400"></textarea>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- SECTION 5: GUIDE STUDIO & LEXIQUE          -->
+    <!-- ========================================== -->
+    <section id="section-guide" class="hidden space-y-5">
+      <div class="p-4 sm:p-6 rounded-xl neon-border-soft space-y-5" style="background-color: var(--bg-surface);">
+        
+        <!-- Header & Instant Search Bar -->
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 pb-4 border-b border-white/10">
+          <div>
+            <h2 class="text-lg sm:text-xl font-bold font-heading text-white">Guide Studio & Lexique Game Dev</h2>
+            <p class="text-xs text-slate-400 mt-1">Méthodologie de production pour débutants et lexique des termes techniques du jeu vidéo.</p>
+          </div>
+          
+          <!-- Keyword Filter Bar -->
+          <div class="relative w-full md:w-80">
+            <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            </span>
+            <input type="text" id="guideSearchInput" oninput="filterGuideAndLexicon()" placeholder="Rechercher (ex: Coyote time, Greybox...)" class="w-full pl-9 pr-3 py-2 text-xs rounded-lg bg-black/50 border border-white/10 text-white placeholder-slate-500 focus:outline-none focus:border-purple-500 transition-colors">
+          </div>
+        </div>
+
+        <!-- Tree View & Main Content Columns -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+          
+          <!-- Left: Table of Contents / Arborescence -->
+          <aside class="lg:col-span-4 space-y-3 p-3.5 rounded-xl border border-white/5 sticky top-24" style="background-color: var(--bg-card);">
+            <div class="flex items-center gap-2 pb-2 border-b border-white/5">
+              <svg class="w-4 h-4 text-accent" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
+              <h3 class="text-xs font-bold uppercase tracking-wider text-accent">Sommaire Dynamique</h3>
+            </div>
+            
+            <nav class="space-y-1 text-xs" id="guideTreeNav">
+              <a href="#guide-manuel" onclick="setActiveGuideLink(this)" class="guide-nav-link block px-2.5 py-1.5 rounded font-bold text-white bg-accent-transparent border border-accent-subtle transition-colors flex items-center gap-2">
+                <span class="status-dot w-1.5 h-1.5 rounded-full bg-accent animate-pulse"></span>
+                <span>0. Manuel d'utilisation</span>
+              </a>
+              <a href="#guide-methodo" onclick="setActiveGuideLink(this)" class="guide-nav-link block px-2.5 py-1.5 rounded text-slate-300 hover:text-white hover:bg-white/5 transition-colors flex items-center gap-2">
+                <span class="status-dot w-1.5 h-1.5 rounded-full bg-slate-500"></span>
+                <span>1. Méthode Étudiante & Scope</span>
+              </a>
+              <a href="#guide-phases" onclick="setActiveGuideLink(this)" class="guide-nav-link block px-2.5 py-1.5 rounded text-slate-300 hover:text-white hover:bg-white/5 transition-colors flex items-center gap-2">
+                <span class="status-dot w-1.5 h-1.5 rounded-full bg-slate-500"></span>
+                <span>2. Les 6 Phases de Création</span>
+              </a>
+              <a href="#guide-gamefeel" onclick="setActiveGuideLink(this)" class="guide-nav-link block px-2.5 py-1.5 rounded text-slate-300 hover:text-white hover:bg-white/5 transition-colors flex items-center gap-2">
+                <span class="status-dot w-1.5 h-1.5 rounded-full bg-slate-500"></span>
+                <span>3. Le Polish & "Juice"</span>
+              </a>
+              <a href="#guide-equipe" onclick="setActiveGuideLink(this)" class="guide-nav-link block px-2.5 py-1.5 rounded text-slate-300 hover:text-white hover:bg-white/5 transition-colors flex items-center gap-2">
+                <span class="status-dot w-1.5 h-1.5 rounded-full bg-slate-500"></span>
+                <span>4. Équipe, Rôles & Décisions</span>
+              </a>
+              <a href="#guide-orga" onclick="setActiveGuideLink(this)" class="guide-nav-link block px-2.5 py-1.5 rounded text-slate-300 hover:text-white hover:bg-white/5 transition-colors flex items-center gap-2">
+                <span class="status-dot w-1.5 h-1.5 rounded-full bg-slate-500"></span>
+                <span>5. Organiser le Travail</span>
+              </a>
+              <a href="#guide-git" onclick="setActiveGuideLink(this)" class="guide-nav-link block px-2.5 py-1.5 rounded text-slate-300 hover:text-white hover:bg-white/5 transition-colors flex items-center gap-2">
+                <span class="status-dot w-1.5 h-1.5 rounded-full bg-slate-500"></span>
+                <span>6. Git, Structure & Nommage</span>
+              </a>
+              <a href="#guide-assets" onclick="setActiveGuideLink(this)" class="guide-nav-link block px-2.5 py-1.5 rounded text-slate-300 hover:text-white hover:bg-white/5 transition-colors flex items-center gap-2">
+                <span class="status-dot w-1.5 h-1.5 rounded-full bg-slate-500"></span>
+                <span>7. Assets, Pipeline & Licences</span>
+              </a>
+              <a href="#guide-qa" onclick="setActiveGuideLink(this)" class="guide-nav-link block px-2.5 py-1.5 rounded text-slate-300 hover:text-white hover:bg-white/5 transition-colors flex items-center gap-2">
+                <span class="status-dot w-1.5 h-1.5 rounded-full bg-slate-500"></span>
+                <span>8. Tests, QA & Playtests</span>
+              </a>
+              <a href="#guide-publication" onclick="setActiveGuideLink(this)" class="guide-nav-link block px-2.5 py-1.5 rounded text-slate-300 hover:text-white hover:bg-white/5 transition-colors flex items-center gap-2">
+                <span class="status-dot w-1.5 h-1.5 rounded-full bg-slate-500"></span>
+                <span>9. Publication & Marketing</span>
+              </a>
+              <a href="#guide-lexique" onclick="setActiveGuideLink(this)" class="guide-nav-link block px-2.5 py-1.5 rounded text-slate-300 hover:text-white hover:bg-white/5 transition-colors flex items-center gap-2">
+                <span class="status-dot w-1.5 h-1.5 rounded-full bg-slate-500"></span>
+                <span>10. Lexique & Anglais Technique</span>
+              </a>
+            </nav>
+
+            <div class="pt-3 border-t border-white/5 text-[11px] text-slate-400">
+              Tapez un mot-clé dans la barre ci-dessus pour filtrer instantanément les explications et le glossaire.
+            </div>
+          </aside>
+
+          <!-- Right: Guide Modules & Glossary -->
+          <div class="lg:col-span-8 space-y-6">
+
+            <!-- Module 0: Manuel d'utilisation -->
+            <article id="guide-manuel" class="guide-block p-4 sm:p-5 rounded-xl border border-white/5 space-y-3" style="background-color: var(--bg-card);">
+              <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                <span class="w-5 h-5 rounded bg-emerald-500/20 text-emerald-300 flex items-center justify-center font-mono text-xs">0</span>
+                <span>Manuel d'Utilisation du Tracker</span>
+              </h3>
+              <div class="space-y-2 text-xs text-slate-300 leading-relaxed">
+                <p>Bienvenue sur Game Dev Studio Tracker. Cet outil fonctionne dans votre navigateur et se synchronise avec les autres membres via Supabase. Voici comment l'utiliser :</p>
+                <ul class="list-disc pl-4 space-y-1.5 text-slate-300">
+                  <li><strong>Tableau Kanban :</strong> Créez des tâches via le bouton "Nouvelle Tâche". Utilisez le Glisser-Déposer (Drag & Drop) ou les flèches directionnelles sur chaque carte pour changer leur statut. Les filtres en haut permettent de trier par pôle ou priorité.</li>
+                  <li><strong>Roadmap & Jalons :</strong> Les pourcentages d'avancement se calculent tout seuls en fonction des tâches terminées. Vous pouvez modifier le champ texte de chaque jalon pour ajuster vos estimations de temps.</li>
+                  <li><strong>GDD Complet vs Mini-GDD :</strong> Le GDD Complet est votre document de référence détaillé en 8 parties. Le Mini-GDD est une fiche synthétique pour pitcher le jeu. Utilisez le bouton <em>"Générer le résumé"</em> du Mini-GDD pour importer automatiquement les données clés du GDD complet.</li>
+                  <li><strong>Personnalisation (Thème) :</strong> Cliquez sur l'icône de palette en haut à droite. Votre thème couleur est sauvegardé localement sur votre machine : chaque membre de l'équipe peut avoir sa propre couleur d'interface de façon indépendante !</li>
+                  <li><strong>Notes :</strong> L'onglet Notes est un bloc-notes partagé avec toute l'équipe. Le bouton « Nouvelle note » crée une note à la racine ; le « + » d'une note crée une sous-note à l'intérieur, et la flèche déplie ou replie les sous-notes. Supprimer une note supprime aussi ses sous-notes. La barre d'outils permet le gras, l'italique, le souligné, le barré et la taille de police (boutons A−/A+ ou champ numérique en pixels) ; les boutons .md et .txt téléchargent la note. Les boutons Claude et Gemini (en haut à droite) copient la note, la téléchargent en .md et ouvrent une nouvelle conversation : il suffit de coller (Ctrl+V) ou de glisser le fichier.</li>
+                  <li><strong>Sauvegarde & Partage :</strong> Les données (tâches, roadmap, GDD) sont synchronisées en temps réel via Supabase : toute modification faite par un membre apparaît chez les autres sans recharger. L'indicateur en haut à droite affiche l'état (Synchronisé, Envoi, Erreur ou Local uniquement). L'icône de sauvegarde permet d'exporter/importer un fichier JSON comme copie de secours. Dans les notes, deux personnes peuvent écrire en même temps : les modifications sur des lignes différentes sont fusionnées automatiquement. Si deux personnes modifient exactement la même ligne au même moment, la dernière modification enregistrée l'emporte.</li>
+                </ul>
+              </div>
+            </article>
+
+            <!-- Module 1: Méthodologie étudiante -->
+            <article id="guide-methodo" class="guide-block p-4 sm:p-5 rounded-xl border border-white/5 space-y-3" style="background-color: var(--bg-card);">
+              <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                <span class="w-5 h-5 rounded bg-purple-500/20 text-purple-300 flex items-center justify-center font-mono text-xs">1</span>
+                <span>Méthodologie Étudiante : Comment Avancer à Temps Partiel</span>
+              </h3>
+              <div class="space-y-2 text-xs text-slate-300 leading-relaxed">
+                <p>
+                  Le principal piège des projets étudiants est d'estimer son temps comme un studio professionnel à temps plein. Avec les cours, examens et devoirs, comptez au maximum <strong>6 à 10 heures effectives par semaine</strong> par équipier.
+                </p>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+                  <div class="p-2.5 rounded-lg bg-black/30 border border-white/5 space-y-1">
+                    <strong class="text-purple-300 block">La Règle du Tiers (1/3) :</strong>
+                    <span>Divisez vos ambitions initiales par trois. Un jeu fini de 10 minutes avec de superbes sensations vaut infiniment plus qu'un monde ouvert buggé.</span>
+                  </div>
+                  <div class="p-2.5 rounded-lg bg-black/30 border border-white/5 space-y-1">
+                    <strong class="text-purple-300 block">Sprints Courts de 7 jours :</strong>
+                    <span>Définissez des tâches de maximum 1 à 2 heures. Le plaisir de cocher des tâches terminées chaque semaine entretient la motivation de l'équipe.</span>
+                  </div>
+                </div>
+              </div>
+            </article>
+
+            <!-- Module 2: Les 6 phases -->
+            <article id="guide-phases" class="guide-block p-4 sm:p-5 rounded-xl border border-white/5 space-y-3" style="background-color: var(--bg-card);">
+              <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                <span class="w-5 h-5 rounded bg-indigo-500/20 text-indigo-300 flex items-center justify-center font-mono text-xs">2</span>
+                <span>Les 6 Phases Indispensables d'un Projet Réussi</span>
+              </h3>
+              <div class="space-y-2 text-xs text-slate-300 leading-relaxed">
+                <ol class="list-decimal pl-4 space-y-1.5 text-slate-300">
+                  <li><strong>Concept & Piliers :</strong> Verrouiller les 3 règles inviolables du jeu avant d'écrire la moindre ligne de code.</li>
+                  <li><strong>Prototype (Greybox) :</strong> Rendre le gameplay intrinsèquement amusant avec de simples cubes gris. Pas de textures, pas d'effets.</li>
+                  <li><strong>Vertical Slice :</strong> Réaliser une tranche de 5 minutes avec graphismes finaux, SFX, musiques et interface. C'est l'étalon de mesure du projet.</li>
+                  <li><strong>Alpha (Feature-Complete) :</strong> Intégrer tout le contenu prévu sans se préoccuper des bugs mineurs.</li>
+                  <li><strong>Bêta & Polish :</strong> Arrêt des nouvelles fonctionnalités. Focus exclusif sur l'optimisation, l'équilibrage et le débuggage.</li>
+                  <li><strong>Release :</strong> Export master, configuration Steam/Itch.io et page de présentation.</li>
+                </ol>
+              </div>
+            </article>
+
+            <!-- Module 3: Polish & Juice -->
+            <article id="guide-gamefeel" class="guide-block p-4 sm:p-5 rounded-xl border border-white/5 space-y-3" style="background-color: var(--bg-card);">
+              <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                <span class="w-5 h-5 rounded bg-blue-500/20 text-blue-300 flex items-center justify-center font-mono text-xs">3</span>
+                <span>Game Feel & "Juice" : La Recette Secrète du Fun</span>
+              </h3>
+              <div class="space-y-2 text-xs text-slate-300 leading-relaxed">
+                <p>
+                  Ce qui fait qu'un jeu vidéo "clique" immédiatement sous les doigts n'est pas son réalisme graphique, mais le retour sensoriel immédiat envoyé au joueur à chaque action :
+                </p>
+                <ul class="list-disc pl-4 space-y-1 text-slate-300">
+                  <li><strong>Screenshake contrôlé :</strong> Une très légère secousse de caméra lors d'un tir puissant ou d'une explosion.</li>
+                  <li><strong>Freeze Frame (Hitstop) :</strong> Figer le jeu pendant 2 à 4 frames (30-60ms) lors d'un coup réussi pour donner une sensation de pénétration physique.</li>
+                  <li><strong>Squash and Stretch :</strong> Déformer élastiquement les sprites lors des sauts et des réceptions au sol.</li>
+                  <li><strong>Audio percutant :</strong> Doubler les impacts avec un punch dans les basses fréquences.</li>
+                </ul>
+              </div>
+            </article>
+
+            <!-- Module 4: Équipe, Rôles & Décisions -->
+            <article id="guide-equipe" class="guide-block p-4 sm:p-5 rounded-xl border border-white/5 space-y-3" style="background-color: var(--bg-card);">
+              <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                <span class="w-5 h-5 rounded bg-emerald-500/20 text-emerald-300 flex items-center justify-center font-mono text-xs">4</span>
+                <span>Équipe, Rôles & Décisions</span>
+              </h3>
+              <div class="space-y-2 text-xs text-slate-300 leading-relaxed">
+                <p>Dans une petite équipe, chacun porte plusieurs casquettes, mais chaque domaine doit avoir un responsable clairement nommé. Sans cela, tout le monde décide de tout et rien n'avance.</p>
+                <ul class="list-disc pl-4 space-y-1.5 text-slate-300">
+                  <li><strong>Rôles à répartir :</strong> Producteur / chef de projet (planning, jalons, risques), Game Designer (règles, équilibrage, GDD à jour), Lead Programmeur, Artiste(s) 2D/3D/UI/animation, Audio (musique & SFX), QA (testeurs, souvent à tour de rôle).</li>
+                  <li><strong>Un décideur par domaine :</strong> En cas de désaccord, le responsable du domaine tranche après avoir écouté les autres. Le Game Designer ou directeur créatif a le dernier mot sur le design, le lead artiste sur le style visuel, le lead programmeur sur l'architecture.</li>
+                  <li><strong>Communication :</strong> Un salon Discord par pôle plus #annonces et #bugs. Les décisions importantes sont écrites dans le GDD ou le Kanban, jamais perdues dans le chat.</li>
+                  <li><strong>Rituels légers :</strong> Un point hebdomadaire de 20 à 30 minutes (fait / à faire / blocages) et une session de jeu en équipe par sprint pour juger le jeu tel qu'il est vraiment.</li>
+                  <li><strong>Facteur camion (bus factor) :</strong> Personne ne doit être le seul à savoir faire quelque chose d'essentiel (export du jeu, configuration Git, outil maison). Documentez-le dans un fichier README.</li>
+                  <li><strong>Accord d'équipe :</strong> Avant de publier ou de vendre : écrivez qui possède quoi, les crédits, le partage d'éventuels revenus et ce qui se passe si quelqu'un quitte le projet. Ce n'est pas un conseil juridique : pour une vraie commercialisation, renseignez-vous auprès d'un professionnel.</li>
+                </ul>
+              </div>
+            </article>
+
+            <!-- Module 5: Organiser le Travail au Quotidien -->
+            <article id="guide-orga" class="guide-block p-4 sm:p-5 rounded-xl border border-white/5 space-y-3" style="background-color: var(--bg-card);">
+              <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                <span class="w-5 h-5 rounded bg-amber-500/20 text-amber-300 flex items-center justify-center font-mono text-xs">5</span>
+                <span>Organiser le Travail au Quotidien</span>
+              </h3>
+              <div class="space-y-2 text-xs text-slate-300 leading-relaxed">
+                <p>La préproduction (concept, prototype, outils) représente souvent environ 20 % du temps total d'un projet : ne la bâclez pas, c'est elle qui évite de refaire le travail plus tard.</p>
+                <ul class="list-disc pl-4 space-y-1.5 text-slate-300">
+                  <li><strong>Une tâche = un livrable :</strong> Une tâche tient en 1 à 2 heures, a un seul responsable et un résultat vérifiable. Trop grosse ? Découpez-la.</li>
+                  <li><strong>Definition of Done :</strong> Une tâche n'est « Terminée » que si elle fonctionne dans le build du dépôt, a été testée par quelqu'un d'autre que son auteur, est commitée sur Git et ne casse rien d'existant.</li>
+                  <li><strong>Limite de travail en cours :</strong> Maximum 2 tâches en colonne « En cours » par personne : finir avant de commencer.</li>
+                  <li><strong>Sprint d'une semaine :</strong> Planning le début de semaine, point à mi-parcours, rétrospective courte en fin de sprint (ce qui a marché / ce qui a bloqué / une amélioration).</li>
+                  <li><strong>Priorisation MoSCoW :</strong> Classez chaque fonctionnalité en Must (indispensable), Should, Could ou Won't (pas cette fois). Préparez une liste de coupes : ce qu'on retire en premier si on prend du retard.</li>
+                  <li><strong>Nouvelle idée ? :</strong> Elle va dans le backlog, pas dans le sprint en cours. On la réévalue au prochain planning.</li>
+                  <li><strong>Estimations :</strong> Doublez ou triplez vos estimations spontanées et gardez 20 à 30 % de marge avant chaque rendu ou période d'examens.</li>
+                  <li><strong>Registre des risques :</strong> Listez les 5 plus gros risques (moteur mal maîtrisé, membre indisponible, asset manquant...) et relisez-les chaque semaine.</li>
+                  <li><strong>Éviter le crunch :</strong> Prévoyez des semaines allégées autour des examens. Un projet étudiant se perd par épuisement bien plus souvent que par manque d'idées.</li>
+                </ul>
+              </div>
+            </article>
+
+            <!-- Module 6: Versioning Git, Structure & Conventions -->
+            <article id="guide-git" class="guide-block p-4 sm:p-5 rounded-xl border border-white/5 space-y-3" style="background-color: var(--bg-card);">
+              <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                <span class="w-5 h-5 rounded bg-sky-500/20 text-sky-300 flex items-center justify-center font-mono text-xs">6</span>
+                <span>Versioning Git, Structure & Conventions</span>
+              </h3>
+              <div class="space-y-2 text-xs text-slate-300 leading-relaxed">
+                <p>Le dépôt Git est la source de vérité du projet. On n'échange jamais de ZIP sur Discord.</p>
+                <ul class="list-disc pl-4 space-y-1.5 text-slate-300">
+                  <li><strong>Branches & commits :</strong> La branche main doit toujours rester jouable. Une branche par fonctionnalité (ex : feature/dash), fusionnée via une Pull Request relue par une autre personne. Commits petits avec un message clair.</li>
+                  <li><strong>Réflexe quotidien :</strong> Pull avant de commencer à travailler, commit et push régulièrement. Même version exacte du moteur pour tout le monde, notée dans le README.</li>
+                  <li><strong>Scènes et prefabs :</strong> Les fichiers de scène sont difficiles à fusionner : évitez de modifier la même scène à deux en même temps (annoncez-le sur Discord) et découpez en plusieurs scènes ou prefabs.</li>
+                  <li><strong>.gitignore par moteur :</strong> Godot : ignorer le dossier .godot/. Unity : ignorer Library/, Temp/, Obj/, Logs/, UserSettings/ mais garder les fichiers .meta (et sérialisation en Force Text). Unreal : ignorer Binaries/, Intermediate/, Saved/, DerivedDataCache/.</li>
+                  <li><strong>Git LFS :</strong> À activer pour les gros fichiers binaires (.psd, .blend, .fbx, .wav, textures). Les quotas gratuits de GitHub sont limités, vérifiez-les. Les projets Unreal volumineux utilisent parfois Perforce ou Plastic SCM à la place.</li>
+                  <li><strong>Dossiers :</strong> Une structure simple et partagée : /art, /audio, /code, /design, /docs. Séparez les fichiers sources (.blend, .psd) des exports utilisés par le moteur.</li>
+                  <li><strong>Nommage :</strong> Pas d'espaces ni d'accents, un style unique (snake_case) et des préfixes par type : spr_player_run, sfx_dash_01, mdl_crate, tex_wall_diffuse.</li>
+                </ul>
+              </div>
+            </article>
+
+            <!-- Module 7: Assets, Pipeline & Licences -->
+            <article id="guide-assets" class="guide-block p-4 sm:p-5 rounded-xl border border-white/5 space-y-3" style="background-color: var(--bg-card);">
+              <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                <span class="w-5 h-5 rounded bg-rose-500/20 text-rose-300 flex items-center justify-center font-mono text-xs">7</span>
+                <span>Assets, Pipeline & Licences</span>
+              </h3>
+              <div class="space-y-2 text-xs text-slate-300 leading-relaxed">
+                <p>Un asset est tout fichier utilisé par le jeu (image, modèle, son, police). Le pipeline décrit le chemin qu'il suit jusqu'au jeu.</p>
+                <ul class="list-disc pl-4 space-y-1.5 text-slate-300">
+                  <li><strong>Placeholder d'abord :</strong> Utilisez des formes ou sprites provisoires jusqu'au Vertical Slice. Ne polissez jamais un asset dont le gameplay n'est pas validé.</li>
+                  <li><strong>Guide de style d'une page :</strong> Fixez avant de produire : résolution des sprites ou polycount, palette de couleurs, format des fichiers, références visuelles. C'est ce qui garde le jeu cohérent à plusieurs artistes.</li>
+                  <li><strong>Chemin d'un asset :</strong> Concept, validation par le lead, production, intégration dans le moteur, test. Chaque asset a un statut visible : placeholder, en cours, final.</li>
+                  <li><strong>Formats courants :</strong> PNG pour la 2D, FBX ou glTF pour la 3D, WAV pour les sources audio et OGG pour les exports légers.</li>
+                  <li><strong>Licences :</strong> Ne jamais utiliser une image, un son ou une musique sans vérifier sa licence. CC0 : libre. CC-BY : crédit obligatoire. Usage non commercial : interdit si vous comptez vendre. Valable aussi pour les polices et plugins.</li>
+                  <li><strong>Fichier CREDITS :</strong> Notez pour chaque asset externe : auteur, source, licence. Ça vous évitera un retrait de dernière minute à la publication.</li>
+                  <li><strong>IA générative :</strong> Si vous en utilisez, vérifiez les règles de la plateforme de publication : Steam demande par exemple de déclarer ce type de contenu.</li>
+                </ul>
+              </div>
+            </article>
+
+            <!-- Module 8: Tests, QA & Playtests -->
+            <article id="guide-qa" class="guide-block p-4 sm:p-5 rounded-xl border border-white/5 space-y-3" style="background-color: var(--bg-card);">
+              <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                <span class="w-5 h-5 rounded bg-orange-500/20 text-orange-300 flex items-center justify-center font-mono text-xs">8</span>
+                <span>Tests, QA & Playtests</span>
+              </h3>
+              <div class="space-y-2 text-xs text-slate-300 leading-relaxed">
+                <p>Un bug découvert tôt coûte quelques minutes, un bug découvert à la sortie peut coûter la réputation du jeu.</p>
+                <ul class="list-disc pl-4 space-y-1.5 text-slate-300">
+                  <li><strong>Build jouable :</strong> Chaque fin de sprint doit produire une version qu'on peut lancer et jouer du début à la fin de ce qui existe.</li>
+                  <li><strong>Smoke test :</strong> Avant toute fusion importante : le jeu se lance, on peut aller du menu au jeu, puis quitter, sans plantage.</li>
+                  <li><strong>Rapport de bug utile :</strong> Titre court, étapes pour reproduire, résultat attendu, résultat obtenu, version du build, capture ou vidéo. Ajoutez une sévérité : Bloquant, Majeur, Mineur, Cosmétique.</li>
+                  <li><strong>Régression :</strong> Après chaque correction, retestez ce qui marchait avant : un correctif peut casser autre chose.</li>
+                  <li><strong>Playtest aveugle :</strong> Faites jouer des personnes extérieures sans les aider ni expliquer. Observez où elles hésitent et notez ; quelques testeurs suffisent à révéler les plus gros problèmes.</li>
+                  <li><strong>Variété de machines :</strong> Testez sur un PC modeste, plusieurs résolutions et avec manette ET clavier, surtout si le jeu les supporte tous les deux.</li>
+                  <li><strong>Performance :</strong> Mesurez avant d'optimiser avec le profiler du moteur (Profiler Unity, Debugger/Monitors Godot, Unreal Insights). Fixez un objectif de FPS.</li>
+                  <li><strong>Sauvegardes :</strong> Testez la sauvegarde et le chargement très tôt : c'est une source classique de bugs tardifs.</li>
+                </ul>
+              </div>
+            </article>
+
+            <!-- Module 9: Publication, Communauté & Marketing -->
+            <article id="guide-publication" class="guide-block p-4 sm:p-5 rounded-xl border border-white/5 space-y-3" style="background-color: var(--bg-card);">
+              <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                <span class="w-5 h-5 rounded bg-cyan-500/20 text-cyan-300 flex items-center justify-center font-mono text-xs">9</span>
+                <span>Publication, Communauté & Marketing</span>
+              </h3>
+              <div class="space-y-2 text-xs text-slate-300 leading-relaxed">
+                <p>Pour un projet étudiant, publier sert surtout à finir le jeu et à construire un portfolio. Si vous visez plus, la visibilité se prépare des mois avant la sortie.</p>
+                <ul class="list-disc pl-4 space-y-1.5 text-slate-300">
+                  <li><strong>Itch.io d'abord :</strong> Gratuit et simple : idéal pour un prototype, une jam ou une démo. Steam demande une inscription Steamworks avec des frais uniques d'environ 100 $ par jeu.</li>
+                  <li><strong>Page Steam « Coming Soon » :</strong> Elle doit être publique au moins 2 semaines avant la sortie. Publiez-la dès que vous avez une identité visuelle, des captures et une description, pour collecter des wishlists. Demandez la validation de la page environ 7 jours ouvrés avant de vouloir la mettre en ligne.</li>
+                  <li><strong>Avant de la publier :</strong> Style artistique décidé, quelques environnements ou situations distincts à montrer, captures de vrai gameplay et une bande-annonce qui montre le jeu dès les premières secondes.</li>
+                  <li><strong>Éléments de la page :</strong> Capsules aux différentes tailles requises, au moins 5 captures en 1920×1080, description courte centrée sur ce que fait le joueur.</li>
+                  <li><strong>Communauté :</strong> Un Discord, des devlogs et clips courts réguliers, un press kit (logo, captures, bande-annonce, fiche descriptive, contact) et des clés envoyées à des créateurs de contenu de votre genre.</li>
+                  <li><strong>Démo & festivals :</strong> Une démo courte et soignée (type Vertical Slice) permet de participer à des événements comme le Steam Next Fest.</li>
+                  <li><strong>Après la sortie :</strong> Répondez aux retours, publiez des correctifs, puis faites un Post-Mortem d'équipe : ce qui a marché, raté, et ce qu'on changera la prochaine fois.</li>
+                </ul>
+              </div>
+            </article>
+
+            <!-- Module 10: Lexique exhaustif avec filtre -->
+            <article id="guide-lexique" class="guide-block p-4 sm:p-5 rounded-xl border border-accent-subtle space-y-4" style="background-color: var(--bg-card);">
+              <div class="flex items-center justify-between pb-2 border-b border-white/5">
+                <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                  <span class="w-5 h-5 rounded bg-accent-transparent text-accent flex items-center justify-center font-mono text-xs">10</span>
+                  <span>Lexique des Termes Techniques & Anglicismes</span>
+                </h3>
+                <span id="lexiconMatchCount" class="text-[11px] font-mono text-accent">58 termes</span>
+              </div>
+              
+              <div id="lexiconListContainer" class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                <!-- Dynamically rendered by JS to allow live keyword search -->
+              </div>
+            </article>
+
+          </div>
+
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- SECTION 6: BLOC-NOTES                      -->
+    <!-- ========================================== -->
+    <section id="section-notes" class="hidden space-y-5">
+      <div class="p-4 sm:p-5 rounded-xl neon-border-soft" style="background-color: var(--bg-surface);">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4 pb-4 border-b border-white/10">
+          <div>
+            <h2 class="text-lg sm:text-xl font-bold font-heading text-white">Bloc-notes</h2>
+            <p class="text-xs text-slate-400 mt-0.5">Notes partagées avec l'équipe, organisées en arborescence.</p>
+          </div>
+          <div class="flex items-center gap-2 flex-wrap">
+            <button onclick="openInAI('claude')" title="Copie et télécharge la note, puis ouvre une nouvelle conversation Claude" class="px-3 py-1.5 rounded-lg text-xs font-medium text-slate-200 border border-white/10 hover:bg-white/5 transition-colors">Claude &#8599;</button>
+            <button onclick="openInAI('gemini')" title="Copie et télécharge la note, puis ouvre une nouvelle conversation Gemini" class="px-3 py-1.5 rounded-lg text-xs font-medium text-slate-200 border border-white/10 hover:bg-white/5 transition-colors">Gemini &#8599;</button>
+            <button onclick="addNote(null)" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold text-white neon-button flex items-center gap-1.5">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            <span>Nouvelle note</span>
+          </button>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+          <aside class="lg:col-span-4 p-2.5 rounded-xl border border-white/5" style="background-color: var(--bg-card);">
+            <div id="notesTree" class="space-y-0.5 max-h-[45vh] lg:max-h-[65vh] overflow-y-auto"></div>
+          </aside>
+
+          <div class="lg:col-span-8">
+            <div id="noteEmpty" class="p-8 text-center text-xs text-slate-500 rounded-xl border border-dashed border-white/10">
+              Aucune note sélectionnée. Créez une note ou choisissez-en une dans l'arborescence.
+            </div>
+            <div id="noteEditor" class="hidden space-y-3">
+              <div id="noteBreadcrumb" class="text-[11px] text-slate-500 truncate"></div>
+              <input type="text" id="noteTitle" oninput="onNoteInput('title')" placeholder="Titre de la note" class="w-full px-3 py-2 text-sm font-bold rounded-lg bg-black/40 border border-white/10 text-white focus:outline-none focus:border-purple-500">
+              <div class="flex flex-wrap items-center gap-1 p-1.5 rounded-lg border border-white/10 bg-black/30">
+                <button type="button" onmousedown="event.preventDefault()" onclick="noteFormat('bold')" title="Gras (Ctrl+B)" class="note-tb font-bold">B</button>
+                <button type="button" onmousedown="event.preventDefault()" onclick="noteFormat('italic')" title="Italique (Ctrl+I)" class="note-tb italic">I</button>
+                <button type="button" onmousedown="event.preventDefault()" onclick="noteFormat('underline')" title="Souligné (Ctrl+U)" class="note-tb underline">U</button>
+                <button type="button" onmousedown="event.preventDefault()" onclick="noteFormat('strikeThrough')" title="Barré" class="note-tb line-through">S</button>
+                <span class="w-px h-5 bg-white/10 mx-1"></span>
+                <button type="button" onmousedown="event.preventDefault()" onclick="noteFontStep(-1)" title="Réduire la police" class="note-tb">A&minus;</button>
+                <button type="button" onmousedown="event.preventDefault()" onclick="noteFontStep(1)" title="Agrandir la police" class="note-tb font-bold">A+</button>
+                <input type="number" id="noteFontSize" list="noteFontSizes" min="6" max="200" step="1" value="12" title="Taille de la police en pixels : tapez un nombre ou choisissez dans la liste" onchange="noteSetFontPx(this.value)" onkeydown="if(event.key==='Enter'){event.preventDefault();noteSetFontPx(this.value);}" class="w-16 h-7 px-1.5 text-xs rounded-md bg-black/40 border border-white/10 text-white text-center focus:outline-none focus:border-purple-500">
+                <datalist id="noteFontSizes"><option value="8"><option value="10"><option value="12"><option value="14"><option value="16"><option value="18"><option value="20"><option value="24"><option value="28"><option value="32"><option value="36"><option value="48"><option value="64"><option value="72"><option value="96"></datalist>
+                <span class="flex-1"></span>
+                <button type="button" onclick="exportNote('md')" title="Télécharger la note en Markdown (.md)" class="note-tb flex items-center gap-1">
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                  <span>.md</span>
+                </button>
+                <button type="button" onclick="exportNote('txt')" title="Télécharger la note en texte (.txt)" class="note-tb flex items-center gap-1">
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                  <span>.txt</span>
+                </button>
+              </div>
+              <div id="noteContent" contenteditable="true" spellcheck="true" oninput="onNoteInput('content')" onpaste="notePaste(event)" ondrop="event.preventDefault()" class="w-full px-3 py-2 text-xs leading-relaxed rounded-lg bg-black/40 border border-white/10 text-slate-200 overflow-auto" style="min-height: 50vh;"></div>
+              <div id="noteMeta" class="text-[11px] text-slate-500"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+
+  </main>
+
+  <!-- ========================================== -->
+  <!-- MODAL: PERSONNALISATION DU THÈME           -->
+  <!-- ========================================== -->
+  <div id="themeModal" class="fixed inset-0 z-50 hidden bg-black/75 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
+    <div class="w-full max-w-md rounded-2xl p-5 border neon-border space-y-4" style="background-color: var(--bg-surface);">
+      <div class="flex items-center justify-between pb-2.5 border-b border-white/10">
+        <h3 class="font-bold font-heading text-base text-white flex items-center gap-2">
+          <svg class="w-4 h-4 text-accent" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><path d="M12 2a7 7 0 0 1 7 7c0 2-1 3-2 4s-1 2-1 3"></path></svg>
+          <span>Personnalisation Colorimétrique</span>
+        </h3>
+        <button onclick="closeCustomizerModal()" class="text-slate-400 hover:text-white text-lg leading-none p-1">&times;</button>
+      </div>
+
+      <div class="space-y-3.5">
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1 flex justify-between">
+            <span>Fond de l'application (bleu très sombre)</span>
+            <span id="labelBgColor" class="font-mono text-accent">#060913</span>
+          </label>
+          <div class="flex items-center gap-3">
+            <input type="color" id="pickerBgColor" value="#060913" oninput="applyLiveTheme()" class="w-10 h-8 rounded cursor-pointer bg-transparent border border-white/20">
+            <span class="text-[11px] text-slate-400">Teinte de base du conteneur.</span>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1 flex justify-between">
+            <span>Bordures & Halo Néon</span>
+            <span id="labelAccentColor" class="font-mono text-accent">#8b5cf6</span>
+          </label>
+          <div class="flex items-center gap-3">
+            <input type="color" id="pickerAccentColor" value="#8b5cf6" oninput="applyLiveTheme()" class="w-10 h-8 rounded cursor-pointer bg-transparent border border-white/20">
+            <span class="text-[11px] text-slate-400">Couleur des bordures néon et des lueurs.</span>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1.5">Presets studio :</label>
+          <div class="grid grid-cols-2 gap-2 text-xs">
+            <button onclick="setThemePreset('#060913', '#8b5cf6')" class="px-2.5 py-1.5 rounded-lg bg-black/40 border border-purple-500/40 text-purple-300 hover:bg-purple-950/30 text-left truncate">
+              Cyber Violet (Défaut)
+            </button>
+            <button onclick="setThemePreset('#040d1a', '#06b6d4')" class="px-2.5 py-1.5 rounded-lg bg-black/40 border border-cyan-500/40 text-cyan-300 hover:bg-cyan-950/30 text-left truncate">
+              Abysse Cyan
+            </button>
+            <button onclick="setThemePreset('#08120b', '#10b981')" class="px-2.5 py-1.5 rounded-lg bg-black/40 border border-emerald-500/40 text-emerald-300 hover:bg-emerald-950/30 text-left truncate">
+              Matrix Emeraude
+            </button>
+            <button onclick="setThemePreset('#14060e', '#f43f5e')" class="px-2.5 py-1.5 rounded-lg bg-black/40 border border-rose-500/40 text-rose-300 hover:bg-rose-950/30 text-left truncate">
+              Synthwave Rose
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="pt-3 border-t border-white/10 flex justify-end gap-2">
+        <button onclick="resetDefaultTheme()" class="px-3 py-1.5 rounded-lg text-xs text-slate-400 hover:text-white bg-white/5">Défaut</button>
+        <button onclick="closeCustomizerModal()" class="px-4 py-1.5 rounded-lg text-xs font-semibold text-white neon-button">Appliquer & Fermer</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- MODAL: NOUVELLE / ÉDITION DE TÂCHE         -->
+  <!-- ========================================== -->
+  <div id="taskModal" class="fixed inset-0 z-50 hidden bg-black/75 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
+    <div class="w-full max-w-lg rounded-2xl p-5 border neon-border space-y-4" style="background-color: var(--bg-surface);">
+      <div class="flex items-center justify-between pb-2.5 border-b border-white/10">
+        <h3 id="taskModalTitle" class="font-bold font-heading text-base text-white">Nouvelle Tâche de Production</h3>
+        <button onclick="closeTaskModal()" class="text-slate-400 hover:text-white text-lg leading-none p-1">&times;</button>
+      </div>
+
+      <form id="taskForm" onsubmit="submitTaskForm(event)" class="space-y-3.5">
+        <input type="hidden" id="taskFormId">
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1">Titre de la tâche *</label>
+          <input type="text" id="taskFormTitle" required placeholder="Ex: Implémenter le dash et les effets d'after-image" class="w-full px-3 py-1.5 text-xs rounded-lg bg-black/40 border border-white/10 text-white focus:outline-none focus:border-purple-500">
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1">Notes techniques / Description</label>
+          <textarea id="taskFormDesc" rows="3" placeholder="Critères de validation, dépendances, assets requis..." class="w-full px-3 py-1.5 text-xs rounded-lg bg-black/40 border border-white/10 text-white focus:outline-none focus:border-purple-500"></textarea>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1">Pôle Studio</label>
+            <select id="taskFormPole" class="w-full px-2.5 py-1.5 text-xs rounded-lg bg-black/40 border border-white/10 text-white focus:outline-none focus:border-purple-500">
+              <option value="Game Design">Game Design</option>
+              <option value="Programmation">Programmation</option>
+              <option value="Art & 3D">Art & 3D</option>
+              <option value="Audio & SFX">Audio & SFX</option>
+              <option value="UI & UX">UI & UX</option>
+              <option value="Bugfix">Bugs & QA</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1">Priorité</label>
+            <select id="taskFormPriority" class="w-full px-2.5 py-1.5 text-xs rounded-lg bg-black/40 border border-white/10 text-white focus:outline-none focus:border-purple-500">
+              <option value="Critique">Critique (Bloquant)</option>
+              <option value="Haute">Haute</option>
+              <option value="Moyenne" selected>Moyenne</option>
+              <option value="Basse">Basse (Polish)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1">Jalon associé</label>
+            <select id="taskFormMilestone" class="w-full px-2.5 py-1.5 text-xs rounded-lg bg-black/40 border border-white/10 text-white focus:outline-none focus:border-purple-500">
+              <option value="Concept">Phase 1: Concept</option>
+              <option value="Prototype" selected>Phase 2: Prototype</option>
+              <option value="Vertical Slice">Phase 3: Vertical Slice</option>
+              <option value="Alpha">Phase 4: Alpha</option>
+              <option value="Beta">Phase 5: Bêta</option>
+              <option value="Release">Phase 6: Release</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1">Statut initial</label>
+            <select id="taskFormColumn" class="w-full px-2.5 py-1.5 text-xs rounded-lg bg-black/40 border border-white/10 text-white focus:outline-none focus:border-purple-500">
+              <option value="backlog">Backlog</option>
+              <option value="todo" selected>À faire</option>
+              <option value="inprogress">En cours</option>
+              <option value="testing">Test & QA</option>
+              <option value="done">Terminé</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="pt-3 border-t border-white/10 flex justify-end gap-2">
+          <button type="button" onclick="closeTaskModal()" class="px-3 py-1.5 rounded-lg text-xs text-slate-400 hover:text-white bg-white/5">Annuler</button>
+          <button type="submit" class="px-4 py-1.5 rounded-lg text-xs font-semibold text-white neon-button">Enregistrer</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- MODAL: GESTION DES DONNÉES & GITHUB       -->
+  <!-- ========================================== -->
+  <div id="dataModal" class="fixed inset-0 z-50 hidden bg-black/75 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
+    <div class="w-full max-w-md rounded-2xl p-5 border neon-border space-y-4" style="background-color: var(--bg-surface);">
+      <div class="flex items-center justify-between pb-2.5 border-b border-white/10">
+        <h3 class="font-bold font-heading text-base text-white flex items-center gap-2">
+          <svg class="w-4 h-4 text-accent" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline></svg>
+          <span>Sauvegardes & Versioning GitHub</span>
+        </h3>
+        <button onclick="closeDataModal()" class="text-slate-400 hover:text-white text-lg leading-none p-1">&times;</button>
+      </div>
+
+      <div class="space-y-3.5 text-xs text-slate-300 leading-relaxed">
+        <p>Toutes vos données (Kanban, Roadmap, Mini-GDD, GDD Complet) sont synchronisées automatiquement avec Supabase. Le JSON ci-dessous sert uniquement de copie de secours.</p>
+
+        <div class="p-3 rounded-lg bg-black/40 border border-white/10 space-y-2">
+          <div class="font-semibold text-white">Exporter le projet (JSON)</div>
+          <p class="text-[11px] text-slate-400">Téléchargez une archive complète à committer sur votre dépôt GitHub.</p>
+          <button onclick="exportProjectJSON()" class="w-full py-1.5 px-3 rounded-lg bg-purple-600/30 hover:bg-purple-600/50 border border-purple-500/50 text-white font-medium flex items-center justify-center gap-2 transition-colors">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+            <span>Télécharger project-backup.json</span>
+          </button>
+        </div>
+
+        <div class="p-3 rounded-lg bg-black/40 border border-white/10 space-y-2">
+          <div class="font-semibold text-white">Importer un fichier JSON</div>
+          <p class="text-[11px] text-slate-400">Restaurez le travail partagé d'un équipier.</p>
+          <input type="file" id="jsonFileInput" accept=".json" onchange="importProjectJSON(event)" class="w-full text-xs text-slate-400 file:mr-2 file:py-1 file:px-2.5 file:rounded file:border-0 file:text-xs file:font-medium file:bg-white/10 file:text-white hover:file:bg-white/20">
+        </div>
+
+        <div class="pt-1 flex justify-between items-center text-[11px] text-slate-500">
+          <span>Compatible 100% GitHub Pages</span>
+          <button onclick="loadSampleProject()" class="text-accent hover:underline">Réinitialiser exemple</button>
+        </div>
+      </div>
+
+      <div class="pt-3 border-t border-white/10 flex justify-end">
+        <button onclick="closeDataModal()" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold text-white bg-white/10 hover:bg-white/15">Fermer</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Notification Toast -->
+  <div id="toastNotification" class="fixed bottom-5 right-5 z-50 transform translate-y-16 opacity-0 transition-all duration-300 pointer-events-none px-4 py-2.5 rounded-xl border flex items-center gap-2.5 shadow-2xl backdrop-blur-md">
+    <div id="toastIconContainer" class="w-5 h-5 rounded-full flex items-center justify-center text-xs"></div>
+    <span id="toastMessage" class="text-xs font-medium text-white">Action effectuée</span>
+  </div>
+
+  <!-- Custom Confirmation Dialog (Replaces native confirm()) -->
+  <div id="confirmModal" class="fixed inset-0 z-50 hidden bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="w-full max-w-sm rounded-2xl p-5 border neon-border space-y-3.5" style="background-color: var(--bg-surface);">
+      <h3 id="confirmModalTitle" class="font-bold text-white text-sm">Confirmation requise</h3>
+      <p id="confirmModalText" class="text-xs text-slate-300 leading-relaxed"></p>
+      <div class="flex justify-end gap-2 pt-1">
+        <button id="confirmCancelBtn" class="px-3 py-1.5 rounded-lg text-xs text-slate-400 hover:text-white bg-white/5">Annuler</button>
+        <button id="confirmOkBtn" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold text-white bg-rose-600 hover:bg-rose-500">Confirmer</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Écran de connexion (Supabase Auth) : masque tout tant qu'on n'est pas connecté -->
+  <div id="loginOverlay" class="fixed inset-0 z-[60] hidden flex items-center justify-center p-4" style="background-color: var(--bg-base);">
+    <form onsubmit="submitLogin(event)" class="w-full max-w-sm rounded-2xl p-6 border neon-border space-y-4" style="background-color: var(--bg-surface);">
+      <h2 class="font-bold text-white text-lg">Connexion</h2>
+      <p class="text-xs text-slate-400">Accès réservé aux membres de l'équipe.</p>
+      <input id="loginEmail" type="email" required autocomplete="username" placeholder="Email" class="w-full px-3 py-2 text-sm rounded-lg bg-black/40 border border-white/10 text-white focus:outline-none focus:border-purple-500">
+      <input id="loginPassword" type="password" required autocomplete="current-password" placeholder="Mot de passe" class="w-full px-3 py-2 text-sm rounded-lg bg-black/40 border border-white/10 text-white focus:outline-none focus:border-purple-500">
+      <p id="loginError" class="text-xs text-rose-400 min-h-[1rem]"></p>
+      <button id="loginSubmit" type="submit" class="w-full py-2 rounded-lg text-sm font-semibold text-white bg-purple-600 hover:bg-purple-500 disabled:opacity-50">Se connecter</button>
+    </form>
+  </div>
+
+  <script src="js/config.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
