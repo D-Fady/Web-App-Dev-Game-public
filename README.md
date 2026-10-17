@@ -3,6 +3,7 @@
 Un tableau de bord pour suivre le développement d'un jeu vidéo en petite équipe : Kanban de tâches, roadmap par jalons, mini-GDD et GDD complet, bloc-notes partagé, guide et lexique du game dev.
 
 Le site est 100 % statique (HTML + JavaScript). Les données sont partagées en temps réel entre les membres grâce à [Supabase](https://supabase.com) (offre gratuite suffisante). Chaque équipe utilise **son propre projet Supabase** : personne ne voit les données des autres.
+**Created with the help of Claude (AI)**
 
 ## Essayer sans rien configurer
 
